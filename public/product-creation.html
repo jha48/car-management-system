@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Car</title>
+</head>
+<body>
+  <h2>Create a New Car</h2>
+  <form id="carForm" enctype="multipart/form-data">
+    <input type="text" id="title" placeholder="Enter car title" required><br>
+    <textarea id="description" placeholder="Enter car description" required></textarea><br>
+    <input type="text" id="tags" placeholder="Enter tags, separated by commas" required><br>
+    <input type="file" id="imageUpload" name="images" multiple><br>
+    <button type="submit">Create Car</button>
+  </form>
+  <p id="message"></p>
+
+  <script>
+    document.getElementById('carForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+      const tags = document.getElementById('tags').value.split(',');
+      const imageUpload = document.getElementById('imageUpload').files;
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        document.getElementById('message').innerText = 'Please log in to upload a car.';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('tags', tags);
+      for (let i = 0; i < imageUpload.length; i++) {
+        formData.append('images', imageUpload[i]);
+      }
+
+      try {
+        const response = await fetch('http://localhost:5000/api/cars', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById('message').innerText = 'Car created successfully!';
+        } else {
+          document.getElementById('message').innerText = `Error: ${data.message}`;
+        }
+      } catch (error) {
+        document.getElementById('message').innerText = `Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

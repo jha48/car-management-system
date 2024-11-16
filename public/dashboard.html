@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+</head>
+<body>
+  <h1>Your Cars</h1>
+  <div id="carsList"></div>
+  <p id="message"></p>
+
+  <script>
+    async function fetchCars() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        document.getElementById('message').innerText = 'Please log in to view your cars.';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5000/api/cars', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          const carsList = document.getElementById('carsList');
+          carsList.innerHTML = data
+            .map(
+              (car) => `
+                <div>
+                  <h3>${car.title}</h3>
+                  <p>${car.description}</p>
+                  <img src="http://localhost:5000${car.images[0]}" alt="${car.title}" style="max-width:200px;"><br>
+                  <button onclick="viewCar('${car._id}')">View Details</button>
+                </div>
+                <hr>
+              `
+            )
+            .join('');
+        } else {
+          document.getElementById('message').innerText = `Error: ${data.message}`;
+        }
+      } catch (error) {
+        document.getElementById('message').innerText = `Error: ${error.message}`;
+      }
+    }
+
+    function viewCar(id) {
+      window.location.href = `/car-details.html?id=${id}`;
+    }
+
+    fetchCars();
+  </script>
+</body>
+</html>
